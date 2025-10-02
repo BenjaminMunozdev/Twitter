@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".FeedActivity">
+    tools:context="com.example.twitter.MainActivity">
 
     <!-- Barra superior -->
     <LinearLayout
@@ -62,7 +62,6 @@
                     android:layout_height="40dp"
                     android:src="@drawable/_077114"
                     android:layout_marginRight="8dp"
-                    android:background="@drawable/circle_shape"
                     android:clipToOutline="true"/>
 
                 <!-- Contenido -->
@@ -107,7 +106,7 @@
                         <ImageView
                             android:layout_width="20dp"
                             android:layout_height="20dp"
-                            android:src="@drawable/ic_comment"/>
+                            android:src="@drawable/coment"/>
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -118,7 +117,7 @@
                             android:layout_width="20dp"
                             android:layout_height="20dp"
                             android:layout_marginStart="16dp"
-                            android:src="@drawable/ic_like"/>
+                            android:src="@drawable/likeheart"/>
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -148,7 +147,6 @@
         android:layout_width="0dp"
         android:layout_height="56dp"
         android:orientation="horizontal"
-        android:gravity="space_evenly"
         android:background="#FFF"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
