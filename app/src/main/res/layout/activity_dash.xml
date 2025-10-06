@@ -11,31 +11,33 @@
     <LinearLayout
         android:id="@+id/topBar"
         android:layout_width="0dp"
-        android:layout_height="56dp"
-        android:orientation="horizontal"
-        android:padding="8dp"
-        android:gravity="center_vertical"
+        android:layout_height="90dp"
         android:background="#FFFFFF"
         android:elevation="4dp"
-        app:layout_constraintTop_toTopOf="parent"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toTopOf="parent">
         <!-- Contenido de la barra superior... -->
         <ImageView
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@drawable/_077114"
-            android:contentDescription="Logo"/>
+            android:contentDescription="Logo"
+            android:src="@drawable/_077114" />
+
         <View
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_weight="1"/>
+            android:layout_weight="1" />
+
         <ImageView
             android:id="@+id/btnMenu"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:src="@drawable/menu"
-            android:contentDescription="Menú"/>
+            android:contentDescription="Menú"
+            android:src="@drawable/menu" />
     </LinearLayout>
 
     <!-- ===== NUEVA VISTA DE BÚSQUEDA ===== -->

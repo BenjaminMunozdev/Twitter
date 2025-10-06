@@ -20,10 +20,9 @@ class RegistroFragment : Fragment(R.layout.fragment_registro) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // TextView para volver al login
         val tvLoginLink = view.findViewById<TextView>(R.id.tvLoginLink)
         tvLoginLink.setOnClickListener {
-            parentFragmentManager.popBackStack() // Vuelve al Login
+            parentFragmentManager.popBackStack()
         }
 
         edtNombre = view.findViewById(R.id.etNombre)
@@ -32,22 +31,52 @@ class RegistroFragment : Fragment(R.layout.fragment_registro) {
         btnRegistro = view.findViewById(R.id.btnRegister)
 
         btnRegistro.setOnClickListener {
-            val nombre = edtNombre.text.toString().trim()
-            val correo = edtCorreo.text.toString().trim()
-            val password = edtPassword.text.toString().trim()
+            validarYRegistrar()
+        }
+    }
 
-            if (nombre.isEmpty() || correo.isEmpty() || password.isEmpty()) {
-                Toast.makeText(requireContext(), "Por favor completa todos los campos", Toast.LENGTH_SHORT).show()
-            } else {
-                // Guardar en SharedPreferences
+    private fun validarYRegistrar() {
+        val nombre = edtNombre.text.toString().trim()
+        val correo = edtCorreo.text.toString().trim()
+        val password = edtPassword.text.toString().trim()
+
+        edtNombre.error = null
+        edtCorreo.error = null
+        edtPassword.error = null
+
+        when {
+            !esNombreValido(nombre) -> {
+                edtNombre.error = "Solo letras y espacios (2 a 40 caracteres)."
+                edtNombre.requestFocus()
+            }
+            !esCorreoValido(correo) -> {
+                edtCorreo.error = "Correo válido (gmail, outlook o hotmail)."
+                edtCorreo.requestFocus()
+            }
+            !esPasswordValida(password) -> {
+                edtPassword.error = "Mínimo 6 caracteres y al menos un número."
+                edtPassword.requestFocus()
+            }
+            else -> {
                 Prefs.save(requireContext(), nombre, correo, password)
-
                 Toast.makeText(requireContext(), "Registro exitoso 🎉", Toast.LENGTH_SHORT).show()
-
-                // Volver al Login automáticamente
                 parentFragmentManager.popBackStack()
             }
         }
     }
-}
 
+    private fun esNombreValido(nombre: String): Boolean {
+        val regex = Regex("^[A-Za-zÁÉÍÓÚáéíóúÑñ ]{2,40}$")
+        return regex.matches(nombre)
+    }
+
+    private fun esCorreoValido(correo: String): Boolean {
+        val regex = Regex("^[A-Za-z0-9._%+-]+@(?:gmail|outlook|hotmail)\\.(?:com|cl|es)$", RegexOption.IGNORE_CASE)
+        return regex.matches(correo)
+    }
+
+    private fun esPasswordValida(pass: String): Boolean {
+        val regex = Regex("^(?=.*\\d).{6,}$")
+        return regex.matches(pass)
+    }
+}
