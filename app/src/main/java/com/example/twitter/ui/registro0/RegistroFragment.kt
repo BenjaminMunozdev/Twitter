@@ -59,7 +59,7 @@ class RegistroFragment : Fragment(R.layout.fragment_registro) {
             }
             else -> {
                 Prefs.save(requireContext(), nombre, correo, password)
-                Toast.makeText(requireContext(), "Registro exitoso 🎉", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Registro exitoso", Toast.LENGTH_SHORT).show()
                 parentFragmentManager.popBackStack()
             }
         }

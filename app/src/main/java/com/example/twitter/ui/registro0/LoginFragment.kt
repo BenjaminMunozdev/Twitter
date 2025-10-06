@@ -58,7 +58,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                 edtPassword.requestFocus()
             }
             correo == savedCorreo && password == savedPassword -> {
-                Toast.makeText(requireContext(), "Login exitoso ✅", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Login exitoso ", Toast.LENGTH_SHORT).show()
                 val intent = Intent(requireContext(), Dash::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 startActivity(intent)
