@@ -1,14 +1,23 @@
-<?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/txtCommentContent"
-    android:layout_width="match_parent"
+<!-- Archivo: app/src/main/res/layout/item_comment.xml (Asegúrate de que sea similar a esto) -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:text="Este es un comentario de ejemplo."
-    android:textSize="14sp"
-    android:paddingStart="16dp"
-    android:paddingEnd="16dp"
-    android:paddingTop="4dp"
-    android:paddingBottom="4dp"
-    android:background="#F5F5F5"
-    android:layout_marginTop="2dp"
-    android:textColor="@android:color/black"/>
+    android:orientation="vertical"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
+    android:paddingStart="16dp"> <!-- Un poco de indentación para que se vea como una respuesta -->
+
+    <TextView
+        android:id="@+id/txtCommentUsername"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Usuario del Comentario"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/txtCommentContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Este es el texto de la respuesta al post." />
+
+</LinearLayout>

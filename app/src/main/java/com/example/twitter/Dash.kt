@@ -1,9 +1,9 @@
 package com.example.twitter
 
-import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.inputmethod.EditorInfo
@@ -18,18 +18,19 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class Dash : AppCompatActivity() {
 
     private val allPosts = mutableListOf(
-        Post("Usuario", "Este es un post sobre desarrollo Android.", 24, 13),
-        Post("Otro", "Otro post de ejemplo con Kotlin.", 10, 5),
-        Post("Dev", "Me encanta programar en Android Studio.", 35, 8),
-        Post("Tester", "Probando la nueva funcionalidad de búsqueda en Kotlin.", 1, 1)
+        Post("Usuario", "Este es un post sobre desarrollo Android.", 24, 2, commentList = mutableListOf("¡Qué buen post!", "Gracias por compartir")),
+        Post("Otro", "Otro post de ejemplo con Kotlin.", 10, 0),
+        Post("Dev", "Me encanta programar en Android Studio.", 35, 1, commentList = mutableListOf("A mí también")),
+        Post("Tester", "Probando la nueva funcionalidad de búsqueda en Kotlin.", 1, 0)
     )
 
-    // Vistas de la UI (sin cambios)
+    // Vistas de la UI
     private lateinit var postsContainer: LinearLayout
     private lateinit var createPostLayout: LinearLayout
     private lateinit var edtNewPost: EditText
@@ -42,9 +43,10 @@ class Dash : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         setContentView(R.layout.activity_dash)
 
-        // --- INICIALIZACIÓN DE VISTAS ---
+        // Inicialización de vistas
         postsContainer = findViewById(R.id.postsContainer)
         createPostLayout = findViewById(R.id.createPostLayout)
         edtNewPost = findViewById(R.id.edtNewPost)
@@ -54,20 +56,18 @@ class Dash : AppCompatActivity() {
         searchLayout = findViewById(R.id.searchLayout)
         edtSearch = findViewById(R.id.edtSearch)
         btnCloseSearch = findViewById(R.id.btnCloseSearch)
-
         val btnMenu: ImageView = findViewById(R.id.btnMenu)
         val btnHome: ImageView = findViewById(R.id.btnHome)
         val btnSearch: ImageView = findViewById(R.id.btnSearch)
 
-        // --- CONFIGURACIÓN DE LISTENERS ---
-        // (Sin cambios en esta sección)
+        // Listeners
         fabAdd.setOnClickListener { toggleCreatePostView(true) }
         btnAddPost.setOnClickListener {
             val content = edtNewPost.text.toString()
             if (content.isNotBlank()) {
-                allPosts.add(0, Post("Tú", content, 0, 0))
+                allPosts.add(0, Post("Tú", content, 0, 0, commentList = mutableListOf()))
                 edtNewPost.text.clear()
-                renderPosts()
+                renderPosts() // Aquí está bien redibujar todo porque es una acción global
                 toggleCreatePostView(false)
             } else {
                 Toast.makeText(this, "Escribe algo para publicar", Toast.LENGTH_SHORT).show()
@@ -84,9 +84,7 @@ class Dash : AppCompatActivity() {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 performSearch()
                 true
-            } else {
-                false
-            }
+            } else { false }
         }
         btnMenu.setOnClickListener { view -> showPopupMenu(view) }
         btnHome.setOnClickListener {
@@ -98,121 +96,108 @@ class Dash : AppCompatActivity() {
             }
         }
 
-        // --- RENDERIZADO INICIAL ---
         renderPosts()
     }
 
-    /**
-     * Dibuja los posts en la UI.
-     * @param postsToRender La lista de posts a mostrar. Si es nula, muestra todos los posts.
-     */
     private fun renderPosts(postsToRender: List<Post>? = null) {
         postsContainer.removeAllViews()
+        val inflater = LayoutInflater.from(this)
         val posts = postsToRender ?: allPosts
 
         posts.forEach { post ->
-            val postView = layoutInflater.inflate(R.layout.item_post, postsContainer, false)
+            val postView = inflater.inflate(R.layout.item_post, postsContainer, false)
 
-            // --- Inicialización de vistas del post (igual que antes) ---
+            // --- Vistas del post (usando los IDs de tu item_post.xml) ---
+            val txtUsername = postView.findViewById<TextView>(R.id.txtUsername)
             val txtPostContent = postView.findViewById<TextView>(R.id.txtPostContent)
             val txtLikeCount = postView.findViewById<TextView>(R.id.txtLikeCount)
             val txtCommentCount = postView.findViewById<TextView>(R.id.txtCommentCount)
             val btnLike = postView.findViewById<ImageView>(R.id.btnLike)
             val btnComment = postView.findViewById<ImageView>(R.id.btnComment)
-            // ===== NUEVA VISTA: El contenedor para la sección de comentarios =====
-            val commentsSectionContainer = postView.findViewById<LinearLayout>(R.id.commentsSectionContainer)
+            val addCommentSection = postView.findViewById<LinearLayout>(R.id.addCommentSection)
+            val commentsContainer = postView.findViewById<LinearLayout>(R.id.commentsContainer)
+            val edtNewComment = postView.findViewById<EditText>(R.id.edtNewComment)
+            val btnSendComment = postView.findViewById<Button>(R.id.btnSendComment)
 
-            // --- Asignación de datos (igual que antes) ---
+            // --- Asignación de datos ---
+            txtUsername.text = post.user
             txtPostContent.text = post.content
             txtLikeCount.text = post.likes.toString()
             txtCommentCount.text = post.comments.toString()
             updateLikeButtonColor(btnLike, post.liked)
 
-            // --- Listeners de botones (igual que antes) ---
+            // --- Listener para el botón de Like (LÓGICA CORREGIDA) ---
             btnLike.setOnClickListener {
                 post.liked = !post.liked
                 post.likes += if (post.liked) 1 else -1
+                // **LA CLAVE:** Actualizamos solo las vistas de este post, sin redibujar todo.
                 txtLikeCount.text = post.likes.toString()
                 updateLikeButtonColor(btnLike, post.liked)
             }
 
+            // --- Listener para MOSTRAR/OCULTAR la sección de comentarios (LÓGICA CORREGIDA) ---
             val commentClickListener = View.OnClickListener {
-                showCommentDialog(post)
+                val isVisible = addCommentSection.visibility == View.VISIBLE
+                val newVisibility = if (isVisible) View.GONE else View.VISIBLE
+                addCommentSection.visibility = newVisibility
+                commentsContainer.visibility = newVisibility
+
+                if (newVisibility == View.VISIBLE) {
+                    edtNewComment.requestFocus()
+                    showKeyboard(edtNewComment)
+                }
             }
             btnComment.setOnClickListener(commentClickListener)
             txtCommentCount.setOnClickListener(commentClickListener)
 
-            // ===== NUEVA LÓGICA PARA RENDERIZAR COMENTARIOS =====
-            // Si la lista de comentarios del post no está vacía...
-            if (post.commentList.isNotEmpty()) {
-                // Hacemos visible el contenedor de comentarios.
-                commentsSectionContainer.visibility = View.VISIBLE
-                commentsSectionContainer.removeAllViews() // Limpiamos por si acaso
+            // --- Listener para ENVIAR un nuevo comentario (LÓGICA CORREGIDA) ---
+            btnSendComment.setOnClickListener {
+                val commentText = edtNewComment.text.toString().trim()
+                if (commentText.isNotEmpty()) {
+                    post.commentList.add(0, commentText) // Añade a la lista de datos
+                    post.comments = post.commentList.size
 
-                // Iteramos sobre cada texto de comentario en la lista del post.
-                post.commentList.forEach { commentText ->
-                    // Inflamos nuestro nuevo layout item_comment.xml.
-                    val commentView = layoutInflater.inflate(R.layout.item_comment, commentsSectionContainer, false) as TextView
-                    // Asignamos el texto del comentario.
-                    commentView.text = commentText
-                    // Añadimos la vista del comentario al contenedor.
-                    commentsSectionContainer.addView(commentView)
+                    // **LA CLAVE:** Actualizamos las vistas de este post y añadimos el nuevo comentario visualmente.
+                    txtCommentCount.text = post.comments.toString()
+                    addCommentView(inflater, commentsContainer, "Tú", commentText, true) // Añade la nueva vista de comentario
+                    edtNewComment.text.clear()
+                    hideKeyboard(edtNewComment)
                 }
-            } else {
-                // Si no hay comentarios, nos aseguramos de que el contenedor esté oculto.
-                commentsSectionContainer.visibility = View.GONE
             }
 
-            // Añadimos la vista completa del post (con sus comentarios ya dentro) al contenedor principal.
+            // --- Renderizar los comentarios existentes ---
+            commentsContainer.removeAllViews()
+            post.commentList.forEach { commentText ->
+                // Aquí podrías tener la lógica para saber quién escribió cada comentario
+                addCommentView(inflater, commentsContainer, "Alguien", commentText, false)
+            }
+
             postsContainer.addView(postView)
         }
     }
 
-    /**
-     *  ===== NUEVA FUNCIÓN PARA MOSTRAR DIÁLOGO DE COMENTARIOS =====
-     *  Muestra un cuadro de diálogo para que el usuario añada un comentario a un post específico.
-     *  @param post El post que se está comentando.
-     */
-    private fun showCommentDialog(post: Post) {
-        // Infla el layout del diálogo que creamos
-        val dialogView = layoutInflater.inflate(R.layout.dialog_add_comment, null)
-        val edtCommentInput = dialogView.findViewById<EditText>(R.id.edtCommentInput)
-        val btnCancel = dialogView.findViewById<Button>(R.id.btnCancelComment)
-        val btnPublish = dialogView.findViewById<Button>(R.id.btnPublishComment)
+    // --- NUEVA FUNCIÓN DE AYUDA para añadir comentarios ---
+    private fun addCommentView(inflater: LayoutInflater, container: LinearLayout, user: String, text: String, addToTop: Boolean) {
+        val commentView = inflater.inflate(R.layout.item_comment, container, false)
+        val txtCommentUsername = commentView.findViewById<TextView>(R.id.txtCommentUsername)
+        val txtCommentContent = commentView.findViewById<TextView>(R.id.txtCommentContent)
 
-        // Crea el AlertDialog
-        val dialog = AlertDialog.Builder(this)
-            .setView(dialogView)
-            .create()
+        txtCommentUsername.text = user
+        txtCommentContent.text = text
 
-        // Acción del botón de Cancelar
-        btnCancel.setOnClickListener {
-            dialog.dismiss() // Cierra el diálogo
+        if (addToTop) {
+            container.addView(commentView, 0) // Añade al principio
+        } else {
+            container.addView(commentView) // Añade al final
         }
-
-        // Acción del botón de Publicar
-        btnPublish.setOnClickListener {
-            val commentText = edtCommentInput.text.toString()
-            if (commentText.isNotBlank()) {
-                // Añade el comentario a la lista dentro del objeto Post
-                post.commentList.add(commentText)
-                // Actualiza el contador
-                post.comments = post.commentList.size
-
-                // Cierra el diálogo y vuelve a renderizar los posts para actualizar el contador en la UI
-                dialog.dismiss()
-                renderPosts()
-                Toast.makeText(this, "Comentario publicado", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(this, "El comentario no puede estar vacío", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        dialog.show() // Muestra el diálogo
     }
 
+    private fun updateLikeButtonColor(button: ImageView, isLiked: Boolean) {
+        val colorRes = if (isLiked) android.R.color.holo_red_light else android.R.color.darker_gray
+        button.setColorFilter(ContextCompat.getColor(this, colorRes))
+    }
 
-    // --- El resto de tus funciones (toggleSearchView, performSearch, showPopupMenu, etc.) se mantienen sin cambios ---
+    // --- El resto de tus funciones (sin cambios) ---
     private fun toggleSearchView(show: Boolean) {
         if (show) {
             searchLayout.visibility = View.VISIBLE
@@ -278,7 +263,6 @@ class Dash : AppCompatActivity() {
                     true
                 }
                 R.id.menu_logout -> {
-                    Prefs.clear(this)
                     val intent = Intent(this, Login::class.java)
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     startActivity(intent)
@@ -290,23 +274,14 @@ class Dash : AppCompatActivity() {
         }
         popup.show()
     }
-
-    private fun updateLikeButtonColor(button: ImageView, isLiked: Boolean) {
-        if (isLiked) {
-            button.setColorFilter(ContextCompat.getColor(this, R.color.black_like))
-        } else {
-            button.setColorFilter(ContextCompat.getColor(this, android.R.color.darker_gray))
-        }
-    }
 }
 
-// La clase de datos Post se mantiene igual
+// Clase de datos sin cambios
 data class Post(
     val user: String,
     val content: String,
     var likes: Int,
     var comments: Int,
     var liked: Boolean = false,
-    val commentList: MutableList<String> = mutableListOf() // Lista para guardar los comentarios
+    val commentList: MutableList<String> = mutableListOf()
 )
-
